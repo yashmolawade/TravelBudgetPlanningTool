@@ -7,7 +7,7 @@ import ExpenseList from './ExpenseList'
 import BudgetSettings from './BudgetSettings'
 import Reports from './Reports'
 import CurrencyConverter from './CurrencyConverter'
-import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useFirebaseSync } from '../hooks/useFirebaseSync'
 import { selectActiveTab } from '../store/slices/uiSlice'
 import { selectAllExpenses } from '../store/slices/expensesSlice'
 import { selectAllBudgets } from '../store/slices/budgetsSlice'
@@ -29,8 +29,8 @@ const AppContent = () => {
     'Other'
   ]
 
-  // Handle localStorage synchronization
-  useLocalStorage(expenses, budgets)
+  // Handle Firebase synchronization
+  useFirebaseSync()
 
   const renderActiveTab = () => {
     switch (activeTab) {
