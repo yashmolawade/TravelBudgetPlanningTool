@@ -1,18 +1,19 @@
-import React from 'react'
-import { Provider } from 'react-redux'
-import { useSelector } from 'react-redux'
-import { store } from './store/store'
-import AppContent from './components/AppContent'
-import AuthContainer from './components/auth/AuthContainer'
-import { useAuth } from './hooks/useAuth'
-import { selectIsAuthenticated, selectAuthLoading } from './store/slices/authSlice'
+import React from "react";
+import { useSelector } from "react-redux";
+import AppContent from "./components/AppContent";
+import AuthContainer from "./components/auth/AuthContainer";
+import { useAuth } from "./hooks/useAuth";
+import {
+  selectIsAuthenticated,
+  selectAuthLoading,
+} from "./store/slices/authSlice";
 
-const AppWrapper = () => {
-  const isAuthenticated = useSelector(selectIsAuthenticated)
-  const loading = useSelector(selectAuthLoading)
-  
+function App() {
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const loading = useSelector(selectAuthLoading);
+
   // Initialize auth listener
-  useAuth()
+  useAuth();
 
   if (loading) {
     return (
@@ -22,18 +23,10 @@ const AppWrapper = () => {
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
-  return isAuthenticated ? <AppContent /> : <AuthContainer />
+  return isAuthenticated ? <AppContent /> : <AuthContainer />;
 }
 
-function App() {
-  return (
-    <Provider store={store}>
-      <AppWrapper />
-    </Provider>
-  )
-}
-
-export default App
+export default App;
