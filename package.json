@@ -1,5 +1,5 @@
 {
-  "name": "travel-budget-planner",
+  "name": "travel-buddy",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,16 +10,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.0.1",
+    "date-fns": "^2.30.0",
+    "firebase": "^10.7.1",
+    "firebase-functions": "^6.3.2",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
+    "lucide-react": "^0.263.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "lucide-react": "^0.263.1",
-    "recharts": "^2.8.0",
-    "date-fns": "^2.30.0",
-    "@reduxjs/toolkit": "^2.0.1",
     "react-redux": "^9.0.4",
-    "firebase": "^10.7.1",
-    "jspdf": "^2.5.1",
-    "jspdf-autotable": "^3.8.2"
+    "recharts": "^2.8.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",

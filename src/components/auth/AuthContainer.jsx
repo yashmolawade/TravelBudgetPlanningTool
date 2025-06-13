@@ -1,23 +1,31 @@
-import React, { useState } from 'react'
-import Login from './Login'
-import Signup from './Signup'
+import React, { useState } from "react";
+import Login from "./Login";
+import Signup from "./Signup";
 
-const AuthContainer = () => {
-  const [isLoginMode, setIsLoginMode] = useState(true)
+const AuthContainer = ({ onAuthSuccess, initialMode, onLogoClick }) => {
+  const [isLoginMode, setIsLoginMode] = useState(initialMode === "login");
 
   const toggleMode = () => {
-    setIsLoginMode(!isLoginMode)
-  }
+    setIsLoginMode(!isLoginMode);
+  };
 
   return (
     <>
       {isLoginMode ? (
-        <Login onToggleMode={toggleMode} />
+        <Login
+          onToggleMode={toggleMode}
+          onAuthSuccess={onAuthSuccess}
+          onLogoClick={onLogoClick}
+        />
       ) : (
-        <Signup onToggleMode={toggleMode} />
+        <Signup
+          onToggleMode={toggleMode}
+          onAuthSuccess={onAuthSuccess}
+          onLogoClick={onLogoClick}
+        />
       )}
     </>
-  )
-}
+  );
+};
 
-export default AuthContainer
+export default AuthContainer;
