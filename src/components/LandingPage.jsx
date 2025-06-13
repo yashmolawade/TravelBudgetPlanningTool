@@ -51,12 +51,15 @@ const LandingPage = ({
         {/* This div holds the travel.png image and applies a blur effect. */}
         {/* z-0 ensures it stays behind other content. */}
         <div
-          className="absolute inset-0 z-0 filter blur-md"
+          className="absolute inset-0 z-0 filter blur-[10%]"
           style={{
             backgroundImage: `url('/travel.png')`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
+            backgroundColor: "rgba(56, 56, 56, 1)",
+            backdropFilter: "blur(10%)",
+            backgroundBlendMode: "overlay",
           }}
         ></div>
 
