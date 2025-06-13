@@ -1,13 +1,45 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
-import { Download, Calendar, TrendingUp } from 'lucide-react'
+import { Download, Calendar, TrendingUp, FileText } from 'lucide-react'
 import { formatCurrency, calculateCategoryTotals, groupExpensesByDate } from '../utils/helpers'
+import { generatePDFReport } from '../utils/pdfGenerator'
 
 const Reports = ({ expenses, budgets, categories }) => {
-  const categoryTotals = useMemo(() => calculateCategoryTotals(expenses), [expenses])
-  const dailyExpenses = useMemo(() => groupExpensesByDate(expenses), [expenses])
+  const [selectedPeriod, setSelectedPeriod] = useState('all') // all, last7days, last30days, last3months
   
-  const totalSpent = Object.values(categoryTotals).reduce((sum, amount) => sum + amount, 0)
+  const categoryTotals = useMemo(() => calculateCategoryTotals(expenses), [expenses])
+  
+  // Filter expenses based on selected period
+  const filteredExpenses = useMemo(() => {
+    if (selectedPeriod === 'all') return expenses
+    
+    const now = new Date()
+    const cutoffDate = new Date()
+    
+    switch (selectedPeriod) {
+      case 'last7days':
+        cutoffDate.setDate(now.getDate() - 7)
+        break
+      case 'last30days':
+        cutoffDate.setDate(now.getDate() - 30)
+        break
+      case 'last3months':
+        cutoffDate.setMonth(now.getMonth() - 3)
+        break
+      default:
+        return expenses
+    }
+    
+    return expenses.filter(expense => new Date(expense.date) >= cutoffDate)
+  }, [expenses, selectedPeriod])
+
+  const dailyExpenses = useMemo(() => groupExpensesByDate(filteredExpenses), [filteredExpenses])
+  
+  const dailyData = Object.entries(dailyExpenses)
+    .map(([date, amount]) => ({ date, amount }))
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+
+  const totalSpent = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0)
   const totalBudget = Object.values(budgets).reduce((sum, amount) => sum + amount, 0)
 
   const categoryReport = categories.map(category => ({
@@ -18,42 +50,10 @@ const Reports = ({ expenses, budgets, categories }) => {
     percentage: budgets[category] > 0 ? ((categoryTotals[category] || 0) / budgets[category] * 100) : 0
   })).filter(item => item.spent > 0 || item.budget > 0)
 
-  const dailyData = Object.entries(dailyExpenses)
-    .map(([date, amount]) => ({ date, amount }))
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
-
-  const generateReport = () => {
-    const reportData = {
-      summary: {
-        totalSpent,
-        totalBudget,
-        remaining: totalBudget - totalSpent,
-        budgetUsage: totalBudget > 0 ? (totalSpent / totalBudget * 100) : 0
-      },
-      categories: categoryReport,
-      expenses: expenses.map(expense => ({
-        date: expense.date,
-        description: expense.description,
-        category: expense.category,
-        amount: expense.amount,
-        notes: expense.notes || ''
-      }))
-    }
-
-    const dataStr = JSON.stringify(reportData, null, 2)
-    const dataBlob = new Blob([dataStr], { type: 'application/json' })
-    const url = URL.createObjectURL(dataBlob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `travel-budget-report-${new Date().toISOString().split('T')[0]}.json`
-    link.click()
-    URL.revokeObjectURL(url)
-  }
-
   const exportCSV = () => {
     const csvContent = [
       ['Date', 'Description', 'Category', 'Amount', 'Notes'],
-      ...expenses.map(expense => [
+      ...filteredExpenses.map(expense => [
         expense.date,
         expense.description,
         expense.category,
@@ -71,18 +71,72 @@ const Reports = ({ expenses, budgets, categories }) => {
     URL.revokeObjectURL(url)
   }
 
+  const exportPDF = () => {
+    generatePDFReport({
+      expenses: filteredExpenses,
+      budgets,
+      categories,
+      categoryTotals,
+      totalSpent,
+      totalBudget,
+      selectedPeriod
+    })
+  }
+
+  const getPeriodLabel = () => {
+    switch (selectedPeriod) {
+      case 'last7days': return 'Last 7 Days'
+      case 'last30days': return 'Last 30 Days'
+      case 'last3months': return 'Last 3 Months'
+      default: return 'All Time'
+    }
+  }
+
   return (
     <div className="space-y-6">
+      {/* Controls */}
+      <div className="card">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <h2 className="text-2xl font-bold text-gray-900">Reports & Analytics</h2>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Period Selector */}
+            <select
+              value={selectedPeriod}
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+              className="input-field text-sm"
+            >
+              <option value="all">All Time</option>
+              <option value="last7days">Last 7 Days</option>
+              <option value="last30days">Last 30 Days</option>
+              <option value="last3months">Last 3 Months</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Expenses</p>
-              <p className="text-2xl font-bold text-gray-900">{expenses.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{filteredExpenses.length}</p>
             </div>
             <Calendar className="h-8 w-8 text-primary-600" />
           </div>
+          <p className="text-xs text-gray-500 mt-1">{getPeriodLabel()}</p>
+        </div>
+
+        <div className="card">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Spent</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalSpent)}</p>
+            </div>
+            <TrendingUp className="h-8 w-8 text-green-600" />
+          </div>
+          <p className="text-xs text-gray-500 mt-1">{getPeriodLabel()}</p>
         </div>
 
         <div className="card">
@@ -93,8 +147,11 @@ const Reports = ({ expenses, budgets, categories }) => {
                 {dailyData.length > 0 ? formatCurrency(totalSpent / dailyData.length) : formatCurrency(0)}
               </p>
             </div>
-            <TrendingUp className="h-8 w-8 text-green-600" />
+            <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <span className="text-blue-600 font-bold text-sm">Avg</span>
+            </div>
           </div>
+          <p className="text-xs text-gray-500 mt-1">Daily average</p>
         </div>
 
         <div className="card">
@@ -115,6 +172,7 @@ const Reports = ({ expenses, budgets, categories }) => {
               </span>
             </div>
           </div>
+          <p className="text-xs text-gray-500 mt-1">vs total budget</p>
         </div>
       </div>
 
@@ -131,11 +189,11 @@ const Reports = ({ expenses, budgets, categories }) => {
               <span>Export CSV</span>
             </button>
             <button
-              onClick={generateReport}
+              onClick={exportPDF}
               className="btn-primary flex items-center space-x-2"
             >
-              <Download className="h-4 w-4" />
-              <span>Export JSON</span>
+              <FileText className="h-4 w-4" />
+              <span>Export PDF</span>
             </button>
           </div>
         </div>
@@ -144,13 +202,24 @@ const Reports = ({ expenses, budgets, categories }) => {
       {/* Daily Spending Chart */}
       {dailyData.length > 0 && (
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Daily Spending Trend</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Daily Spending Trend - {getPeriodLabel()}
+          </h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={dailyData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+              <XAxis 
+                dataKey="date" 
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip formatter={(value) => formatCurrency(value)} />
+              <Tooltip 
+                formatter={(value) => formatCurrency(value)}
+                labelFormatter={(label) => `Date: ${label}`}
+              />
               <Line 
                 type="monotone" 
                 dataKey="amount" 
@@ -165,7 +234,9 @@ const Reports = ({ expenses, budgets, categories }) => {
 
       {/* Category Performance */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Category Performance</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Category Performance - {getPeriodLabel()}
+        </h3>
         {categoryReport.length > 0 ? (
           <div className="space-y-4">
             {categoryReport.map(item => (

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { Save, Target, AlertCircle } from 'lucide-react'
-import { updateBudget, updateMultipleBudgets } from '../store/slices/budgetsSlice'
+import { Save, Target, AlertCircle, Trash2 } from 'lucide-react'
+import { updateBudget, updateMultipleBudgets, clearBudgets } from '../store/slices/budgetsSlice'
 import { addNotification } from '../store/slices/uiSlice'
 import { formatCurrency } from '../utils/helpers'
 
@@ -10,6 +10,7 @@ const BudgetSettings = ({ categories, budgets }) => {
   
   const [localBudgets, setLocalBudgets] = useState(budgets)
   const [hasChanges, setHasChanges] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const handleBudgetChange = (category, value) => {
     const numericValue = parseFloat(value) || 0
@@ -36,6 +37,19 @@ const BudgetSettings = ({ categories, budgets }) => {
   const handleReset = () => {
     setLocalBudgets(budgets)
     setHasChanges(false)
+  }
+
+  const handleDeleteAllBudgets = () => {
+    dispatch(clearBudgets())
+    setLocalBudgets({})
+    setHasChanges(false)
+    setShowDeleteConfirm(false)
+    
+    dispatch(addNotification({
+      type: 'success',
+      message: 'All budgets have been cleared successfully!',
+      title: 'Budgets Cleared'
+    }))
   }
 
   const totalBudget = Object.values(localBudgets).reduce((sum, amount) => sum + (amount || 0), 0)
@@ -91,11 +105,11 @@ const BudgetSettings = ({ categories, budgets }) => {
           ))}
         </div>
 
-        <div className="flex space-x-4 mt-8">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 mt-8">
           <button
             onClick={handleSave}
             disabled={!hasChanges}
-            className={`btn-primary flex items-center space-x-2 ${
+            className={`btn-primary flex items-center justify-center space-x-2 ${
               !hasChanges ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
@@ -111,8 +125,49 @@ const BudgetSettings = ({ categories, budgets }) => {
               Reset Changes
             </button>
           )}
+
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="btn-secondary flex items-center justify-center space-x-2 text-red-600 hover:bg-red-50 border-red-200"
+          >
+            <Trash2 className="h-4 w-4" />
+            <span>Clear All Budgets</span>
+          </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="bg-red-100 p-2 rounded-full">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Clear All Budgets</h3>
+            </div>
+            
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to clear all budget settings? This action cannot be undone and is useful when starting a new trip.
+            </p>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={handleDeleteAllBudgets}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Yes, Clear All
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 btn-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Budget Tips */}
       <div className="card bg-blue-50 border-blue-200">
@@ -123,6 +178,7 @@ const BudgetSettings = ({ categories, budgets }) => {
           <li>• Research average costs for accommodation, food, and activities in your destination</li>
           <li>• Consider seasonal price variations when planning your budget</li>
           <li>• Review and adjust your budgets based on actual spending patterns</li>
+          <li>• Use "Clear All Budgets" when starting a new trip to reset your planning</li>
         </ul>
       </div>
     </div>
