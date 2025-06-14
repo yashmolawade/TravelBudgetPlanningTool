@@ -1,4 +1,4 @@
-# Travel Budget Planning Tool 🧳
+# Travel Buddy 🧳
 
 ## What is this? 🤔
 
@@ -20,7 +20,7 @@ This is a web application that helps you plan and manage your travel expenses. T
 
 ### Option 1: Use the Live Website
 
-1. Visit our website: [Travel Budget Planning Tool](https://travel-buddy-yash.vercel.app/)
+1. Visit our website: [Travel Buddy](https://travel-buddy-yash.vercel.app/)
 2. Create an account or sign in
 3. Start planning your travel budget!
 
@@ -34,7 +34,7 @@ This is a web application that helps you plan and manage your travel expenses. T
 
 #### Step 2: Set Up Your Computer
 
-1. Download and install [Node.js](https://nodejs.org/) (Choose the "LTS" version)
+1. Download and install [Node.js](https://nodejs.org/) (Choose the "LTS" version). This is required to run the development tools and manage project dependencies.
 2. Download and install [Visual Studio Code](https://code.visualstudio.com/) (or any code editor you prefer)
 
 #### Step 3: Open the Project
@@ -102,7 +102,7 @@ This is a web application that helps you plan and manage your travel expenses. T
 
 ## Need Help? 🆘
 
-- Visit our live website: [Travel Budget Planning Tool](https://travel-buddy-yash.vercel.app/)
+- Visit our live website: [Travel Buddy](https://travel-buddy-yash.vercel.app/)
 - Check our FAQ section (coming soon)
 - Report issues on our GitHub page
 
@@ -129,14 +129,14 @@ If you find this tool helpful, you can support us by:
 - Contributing to the project
 - Reporting bugs and suggesting features
 
-## Contact Us 📧
+## Contact Us ��
 
-- GitHub: [Travel Budget Planning Tool Repository](https://github.com/your-username/TravelBudgetPlanningTool)
-- Live Demo: [Travel Budget Planning Tool](https://travel-buddy-yash.vercel.app/)
+- GitHub: [Travel Buddy Repository](https://github.com/your-username/TravelBudgetPlanningTool)
+- Live Demo: [Travel Buddy](https://travel-buddy-yash.vercel.app/)
 
 ## 📸 Screenshots
 
-Here are some screenshots of the Travel Budget Planning Tool in action:
+Here are some screenshots of the Travel Buddy in action:
 
 ### Landing Page
 
