@@ -20,7 +20,7 @@ This is a web application that helps you plan and manage your travel expenses. T
 
 ### Option 1: Use the Live Website
 
-1. Visit our website: [Travel Buddy](https://travel-buddy-yash.vercel.app/)
+1. Visit my website: [Travel Buddy](https://travel-buddy-yash.vercel.app/)
 2. Create an account or sign in
 3. Start planning your travel budget!
 
