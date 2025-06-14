@@ -1,12 +1,163 @@
-# React + Vite
+# Travel Budget Planning Tool 🧳
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## What is this? 🤔
 
-Currently, two official plugins are available:
+This is a web application that helps you plan and manage your travel expenses. Think of it as your personal travel budget assistant! You can:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Plan your travel budget
+- Track your expenses
+- See beautiful charts of your spending
+- Get PDF reports of your travel expenses
+- Access your data from anywhere
 
-## Expanding the ESLint configuration
+## Who is this for? 👥
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Travelers who want to keep track of their expenses
+- Trip planners who need to budget their travels
+- Anyone who wants to manage their travel money better
+
+## How to Use This Application 🚀
+
+### Option 1: Use the Live Website
+
+1. Visit our website: [Travel Budget Planning Tool](https://travel-buddy-yash.vercel.app/)
+2. Create an account or sign in
+3. Start planning your travel budget!
+
+### Option 2: Run on Your Computer (For Developers)
+
+#### Step 1: Get the Code
+
+1. Click the green "Code" button on this page
+2. Click "Download ZIP"
+3. Extract the ZIP file to a folder on your computer
+
+#### Step 2: Set Up Your Computer
+
+1. Download and install [Node.js](https://nodejs.org/) (Choose the "LTS" version)
+2. Download and install [Visual Studio Code](https://code.visualstudio.com/) (or any code editor you prefer)
+
+#### Step 3: Open the Project
+
+1. Open Visual Studio Code
+2. Go to File → Open Folder
+3. Select the folder where you extracted the ZIP file
+
+#### Step 4: Install Dependencies
+
+1. Open the terminal in Visual Studio Code (View → Terminal)
+2. Type these commands one by one:
+   ```bash
+   npm install
+   ```
+
+#### Step 5: Start the Application
+
+1. In the terminal, type:
+   ```bash
+   npm run dev
+   ```
+2. Wait for the message that says the server is running
+3. Open your web browser and go to: http://localhost:5173
+
+## Features in Detail ✨
+
+### 1. Budget Planning
+
+- Create new travel budgets
+- Set spending limits
+- Plan for different expense categories
+
+### 2. Expense Tracking
+
+- Add your expenses
+- Categorize them (food, transport, accommodation, etc.)
+- Add notes and receipts
+
+### 3. Visual Reports
+
+- See your spending patterns in charts
+- Compare planned vs. actual expenses
+- Track your budget progress
+
+### 4. PDF Reports
+
+- Generate detailed expense reports
+- Download and share with others
+- Keep records for future reference
+
+## Common Issues and Solutions 🔧
+
+### If the application doesn't start:
+
+1. Make sure Node.js is installed correctly
+2. Try closing and reopening Visual Studio Code
+3. Make sure you're in the correct folder in the terminal
+
+### If you see error messages:
+
+1. Check if you've installed all dependencies
+2. Make sure you have a stable internet connection
+3. Try running `npm install` again
+
+## Need Help? 🆘
+
+- Visit our live website: [Travel Budget Planning Tool](https://travel-buddy-yash.vercel.app/)
+- Check our FAQ section (coming soon)
+- Report issues on our GitHub page
+
+## Privacy and Security 🔒
+
+- Your data is stored securely in Firebase
+- We use industry-standard encryption
+- Your information is never shared with third parties
+
+## Updates and Improvements 🔄
+
+We regularly update the application with new features and improvements. Make sure to:
+
+1. Check for updates regularly
+2. Follow our social media for announcements
+3. Read our update notes for new features
+
+## Support the Project 💝
+
+If you find this tool helpful, you can support us by:
+
+- Starring the project on GitHub
+- Sharing it with friends
+- Contributing to the project
+- Reporting bugs and suggesting features
+
+## Contact Us 📧
+
+- GitHub: [Travel Budget Planning Tool Repository](https://github.com/your-username/TravelBudgetPlanningTool)
+- Live Demo: [Travel Budget Planning Tool](https://travel-buddy-yash.vercel.app/)
+
+## 📸 Screenshots
+
+Here are some screenshots of the Travel Budget Planning Tool in action:
+
+### Landing Page
+
+![Landing Page](images/landing_page.png)
+
+### Sign In Page
+
+![Sign In Page](images/signin_page.png)
+
+### Create Account Page
+
+![Create Account Page](images/create_account_page.png)
+
+### Dashboard Overview
+
+![Dashboard Overview](images/dashboard_overview.png)
+
+### Spending Charts
+
+![Spending Charts](images/spending_charts.png)
+
+---
+
+Made with ❤️ for travelers everywhere
