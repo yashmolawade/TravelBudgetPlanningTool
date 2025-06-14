@@ -104,7 +104,7 @@ This is a web application that helps you plan and manage your travel expenses. T
 
 - Visit our live website: [Travel Buddy](https://travel-buddy-yash.vercel.app/)
 - Check our FAQ section (coming soon)
-- Report issues on our GitHub page
+- Report issues on our [GitHub page](https://github.com/yashmolawade/TravelBudgetPlanningTool)
 
 ## Privacy and Security 🔒
 
@@ -129,9 +129,9 @@ If you find this tool helpful, you can support us by:
 - Contributing to the project
 - Reporting bugs and suggesting features
 
-## Contact Us ��
+## Contact Us 📧
 
-- GitHub: [Travel Buddy Repository](https://github.com/your-username/TravelBudgetPlanningTool)
+- GitHub: [Travel Buddy Repository](https://github.com/yashmolawade/TravelBudgetPlanningTool)
 - Live Demo: [Travel Buddy](https://travel-buddy-yash.vercel.app/)
 
 ## 📸 Screenshots
@@ -140,23 +140,23 @@ Here are some screenshots of the Travel Buddy in action:
 
 ### Landing Page
 
-![Landing Page](images/landing_page.png)
+![Landing Page](https://github.com/yashmolawade/TravelBudgetPlanningTool/raw/main/images/landing_page.png)
 
 ### Sign In Page
 
-![Sign In Page](images/signin_page.png)
+![Sign In Page](https://github.com/yashmolawade/TravelBudgetPlanningTool/raw/main/images/signin_page.png)
 
 ### Create Account Page
 
-![Create Account Page](images/create_account_page.png)
+![Create Account Page](https://github.com/yashmolawade/TravelBudgetPlanningTool/raw/main/images/create_account_page.png)
 
 ### Dashboard Overview
 
-![Dashboard Overview](images/dashboard_overview.png)
+![Dashboard Overview](https://github.com/yashmolawade/TravelBudgetPlanningTool/raw/main/images/dashboard_overview.png)
 
 ### Spending Charts
 
-![Spending Charts](images/spending_charts.png)
+![Spending Charts](https://github.com/yashmolawade/TravelBudgetPlanningTool/raw/main/images/spending_charts.png)
 
 ---
 
