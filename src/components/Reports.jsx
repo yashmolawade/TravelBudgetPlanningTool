@@ -16,6 +16,7 @@ import {
   formatCurrency,
   calculateCategoryTotals,
   groupExpensesByDate,
+  formatDate,
 } from "../utils/helpers";
 import { generatePDFReport } from "../utils/pdfGenerator";
 
@@ -52,39 +53,72 @@ const Reports = ({ expenses, budgets, categories }) => {
     return expenses.filter((expense) => new Date(expense.date) >= cutoffDate);
   }, [expenses, selectedPeriod]);
 
-  const dailyExpenses = useMemo(
-    () => groupExpensesByDate(filteredExpenses),
-    [filteredExpenses]
-  );
+  // Calculate daily expenses with proper amount handling
+  const dailyExpenses = useMemo(() => {
+    const grouped = groupExpensesByDate(filteredExpenses);
+    return Object.entries(grouped).map(([date, expenses]) => ({
+      date: formatDate(date),
+      amount: expenses.reduce((sum, expense) => {
+        const amount = parseFloat(expense.amount) || 0;
+        return Math.round((sum + amount) * 100) / 100;
+      }, 0),
+    }));
+  }, [filteredExpenses]);
 
-  const dailyData = Object.entries(dailyExpenses)
-    .map(([date, amount]) => ({ date, amount }))
-    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  // Sort daily data by date
+  const dailyData = useMemo(() => {
+    return dailyExpenses.sort((a, b) => new Date(a.date) - new Date(b.date));
+  }, [dailyExpenses]);
 
-  const totalSpent = filteredExpenses.reduce(
-    (sum, expense) => sum + expense.amount,
-    0
-  );
-  const totalBudget = Object.values(budgets).reduce(
-    (sum, amount) => sum + amount,
-    0
-  );
+  // Calculate total spent with proper rounding
+  const totalSpent = useMemo(() => {
+    return (
+      Math.round(
+        filteredExpenses.reduce((sum, expense) => {
+          const amount = parseFloat(expense.amount) || 0;
+          return sum + amount;
+        }, 0) * 100
+      ) / 100
+    );
+  }, [filteredExpenses]);
 
-  const categoryReport = categories
-    .map((category) => ({
-      category,
-      spent: categoryTotals[category] || 0,
-      budget: budgets[category] || 0,
-      remaining: Math.max(
-        0,
-        (budgets[category] || 0) - (categoryTotals[category] || 0)
-      ),
-      percentage:
-        budgets[category] > 0
-          ? ((categoryTotals[category] || 0) / budgets[category]) * 100
-          : 0,
-    }))
-    .filter((item) => item.spent > 0 || item.budget > 0);
+  // Calculate total budget with proper rounding
+  const totalBudget = useMemo(() => {
+    return (
+      Math.round(
+        Object.values(budgets).reduce((sum, amount) => {
+          const budgetAmount = parseFloat(amount) || 0;
+          return sum + budgetAmount;
+        }, 0) * 100
+      ) / 100
+    );
+  }, [budgets]);
+
+  // Calculate category report with proper rounding
+  const categoryReport = useMemo(() => {
+    return categories
+      .map((category) => {
+        const spent = parseFloat(categoryTotals[category]) || 0;
+        const budget = parseFloat(budgets[category]) || 0;
+        const remaining = Math.max(0, budget - spent);
+        const percentage = budget > 0 ? (spent / budget) * 100 : 0;
+
+        return {
+          category,
+          spent: Math.round(spent * 100) / 100,
+          budget: Math.round(budget * 100) / 100,
+          remaining: Math.round(remaining * 100) / 100,
+          percentage: Math.round(percentage * 100) / 100,
+        };
+      })
+      .filter((item) => item.spent > 0 || item.budget > 0);
+  }, [categories, categoryTotals, budgets]);
+
+  // Calculate average daily spending
+  const averageDailySpending = useMemo(() => {
+    if (dailyData.length === 0) return 0;
+    return Math.round((totalSpent / dailyData.length) * 100) / 100;
+  }, [totalSpent, dailyData.length]);
 
   const exportCSV = () => {
     const csvContent = [
@@ -205,7 +239,7 @@ const Reports = ({ expenses, budgets, categories }) => {
               </p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {dailyData.length > 0
-                  ? formatCurrency(totalSpent / dailyData.length)
+                  ? formatCurrency(averageDailySpending)
                   : formatCurrency(0)}
               </p>
             </div>
@@ -304,7 +338,10 @@ const Reports = ({ expenses, budgets, categories }) => {
                 textAnchor="end"
                 height={80}
               />
-              <YAxis tick={{ fontSize: 12, fill: "#9CA3AF" }} />
+              <YAxis
+                tick={{ fontSize: 12, fill: "#9CA3AF" }}
+                tickFormatter={(value) => formatCurrency(value)}
+              />
               <Tooltip
                 formatter={(value) => formatCurrency(value)}
                 labelFormatter={(label) => `Date: ${label}`}

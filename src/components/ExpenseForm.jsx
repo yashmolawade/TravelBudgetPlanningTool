@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { Save, X } from "lucide-react";
 import { addExpense } from "../store/slices/expensesSlice";
@@ -17,79 +17,151 @@ const ExpenseForm = ({ categories }) => {
 
   const [errors, setErrors] = useState({});
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  // Format amount to ensure proper decimal handling
+  const formatAmount = useCallback((value) => {
+    // Remove any non-numeric characters except decimal point
+    let cleanValue = value.replace(/[^0-9.]/g, "");
 
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
+    // Handle multiple decimal points
+    const parts = cleanValue.split(".");
+    if (parts.length > 2) {
+      cleanValue = parts[0] + "." + parts.slice(1).join("");
     }
-  };
 
-  const validateForm = () => {
+    // Limit to 2 decimal places
+    if (parts.length === 2 && parts[1].length > 2) {
+      cleanValue = parts[0] + "." + parts[1].substring(0, 2);
+    }
+
+    // Remove leading zeros
+    if (
+      cleanValue.startsWith("0") &&
+      cleanValue.length > 1 &&
+      cleanValue[1] !== "."
+    ) {
+      cleanValue = cleanValue.substring(1);
+    }
+
+    return cleanValue;
+  }, []);
+
+  const handleChange = useCallback(
+    (e) => {
+      const { name, value } = e.target;
+
+      if (name === "amount") {
+        const formattedValue = formatAmount(value);
+        setFormData((prev) => ({
+          ...prev,
+          [name]: formattedValue,
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+        }));
+      }
+
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: "",
+        }));
+      }
+    },
+    [errors, formatAmount]
+  );
+
+  const validateForm = useCallback(() => {
     const newErrors = {};
 
+    // Validate description
     if (!formData.description.trim()) {
       newErrors.description = "Description is required";
+    } else if (formData.description.length > 100) {
+      newErrors.description = "Description must be less than 100 characters";
     }
 
-    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+    // Validate amount
+    const amount = parseFloat(formData.amount);
+    if (!formData.amount) {
+      newErrors.amount = "Amount is required";
+    } else if (isNaN(amount)) {
+      newErrors.amount = "Amount must be a valid number";
+    } else if (amount <= 0) {
       newErrors.amount = "Amount must be greater than 0";
+    } else if (amount > 1000000) {
+      newErrors.amount = "Amount must be less than 1,000,000";
     }
 
+    // Validate date
     if (!formData.date) {
       newErrors.date = "Date is required";
+    } else {
+      const selectedDate = new Date(formData.date);
+      const today = new Date();
+      if (selectedDate > today) {
+        newErrors.date = "Date cannot be in the future";
+      }
+    }
+
+    // Validate notes length
+    if (formData.notes && formData.notes.length > 500) {
+      newErrors.notes = "Notes must be less than 500 characters";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(
+    (e) => {
+      e.preventDefault();
 
-    if (validateForm()) {
-      // Dispatch action to add expense
-      dispatch(
-        addExpense({
-          ...formData,
-          amount: parseFloat(formData.amount),
-        })
-      );
+      if (validateForm()) {
+        // Round the amount to 2 decimal places
+        const roundedAmount =
+          Math.round(parseFloat(formData.amount) * 100) / 100;
 
-      // Add success notification
-      dispatch(
-        addNotification({
-          type: "success",
-          message: "Expense added successfully!",
-          title: "Success",
-        })
-      );
+        // Dispatch action to add expense
+        dispatch(
+          addExpense({
+            ...formData,
+            amount: roundedAmount,
+            description: formData.description.trim(),
+            notes: formData.notes.trim(),
+          })
+        );
 
-      // Reset form
-      setFormData({
-        description: "",
-        amount: "",
-        category: categories[0],
-        date: new Date().toISOString().split("T")[0],
-        notes: "",
-      });
+        // Add success notification
+        dispatch(
+          addNotification({
+            type: "success",
+            message: "Expense added successfully!",
+            title: "Success",
+          })
+        );
 
-      // Navigate back to dashboard
-      dispatch(setActiveTab("dashboard"));
-    }
-  };
+        // Reset form
+        setFormData({
+          description: "",
+          amount: "",
+          category: categories[0],
+          date: new Date().toISOString().split("T")[0],
+          notes: "",
+        });
 
-  const handleCancel = () => {
+        // Navigate back to dashboard
+        dispatch(setActiveTab("dashboard"));
+      }
+    },
+    [formData, validateForm, dispatch, categories]
+  );
+
+  const handleCancel = useCallback(() => {
     dispatch(setActiveTab("dashboard"));
-  };
+  }, [dispatch]);
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -120,6 +192,7 @@ const ExpenseForm = ({ categories }) => {
               name="description"
               value={formData.description}
               onChange={handleChange}
+              maxLength={100}
               className={`input-field bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
                 errors.description ? "border-red-500" : ""
               }`}
@@ -140,19 +213,22 @@ const ExpenseForm = ({ categories }) => {
               >
                 Amount *
               </label>
-              <input
-                type="number"
-                id="amount"
-                name="amount"
-                value={formData.amount}
-                onChange={handleChange}
-                step="0.01"
-                min="0"
-                className={`input-field bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
-                  errors.amount ? "border-red-500" : ""
-                }`}
-                placeholder="0.00"
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                  $
+                </span>
+                <input
+                  type="text"
+                  id="amount"
+                  name="amount"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  className={`input-field pl-7 bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
+                    errors.amount ? "border-red-500" : ""
+                  }`}
+                  placeholder="0.00"
+                />
+              </div>
               {errors.amount && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                   {errors.amount}
@@ -196,6 +272,7 @@ const ExpenseForm = ({ categories }) => {
               name="date"
               value={formData.date}
               onChange={handleChange}
+              max={new Date().toISOString().split("T")[0]}
               className={`input-field bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
                 errors.date ? "border-red-500" : ""
               }`}
@@ -212,35 +289,38 @@ const ExpenseForm = ({ categories }) => {
               htmlFor="notes"
               className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
             >
-              Notes (Optional)
+              Notes
             </label>
             <textarea
               id="notes"
               name="notes"
               value={formData.notes}
               onChange={handleChange}
-              rows={3}
-              className="input-field bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-              placeholder="Additional notes about this expense..."
+              maxLength={500}
+              rows="3"
+              className={`input-field bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
+                errors.notes ? "border-red-500" : ""
+              }`}
+              placeholder="Add any additional details about this expense..."
             />
+            {errors.notes && (
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                {errors.notes}
+              </p>
+            )}
           </div>
 
-          <div className="flex space-x-4">
-            <button
-              type="submit"
-              className="btn-primary flex items-center space-x-2 flex-1"
-            >
-              <Save className="h-4 w-4" />
-              <span>Save Expense</span>
-            </button>
-
+          <div className="flex justify-end space-x-4">
             <button
               type="button"
               onClick={handleCancel}
-              className="btn-secondary flex items-center space-x-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-white border border-gray-300 dark:border-gray-700"
+              className="btn-secondary"
             >
-              <X className="h-4 w-4" />
-              <span>Cancel</span>
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary">
+              <Save className="h-5 w-5 mr-2 inline" />
+              Save Expense
             </button>
           </div>
         </form>

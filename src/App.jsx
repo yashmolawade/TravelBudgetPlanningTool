@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import AppContent from "./components/AppContent";
 import AuthContainer from "./components/auth/AuthContainer";
@@ -9,7 +9,7 @@ import {
   selectIsAuthenticated,
   selectAuthLoading,
 } from "./store/slices/authSlice";
-import { selectCurrentView, setCurrentView, setActiveTab } from "./store/slices/uiSlice";
+import { selectCurrentView, setCurrentView } from "./store/slices/uiSlice";
 
 function App() {
   const dispatch = useDispatch();
@@ -22,21 +22,21 @@ function App() {
   // Initialize auth listener
   useAuth();
 
-  // Determine initial view after loading
-  useEffect(() => {
+  // Handle view changes based on authentication status
+  const handleViewChange = useCallback(() => {
     if (!loading) {
-      if (isAuthenticated) {
-        // If authenticated, restore the last active tab if it exists
-        const savedTab = localStorage.getItem('activeTab');
-        if (savedTab) {
-          dispatch(setActiveTab(savedTab));
-        }
-        dispatch(setCurrentView('dashboard'));
-      } else if (currentView !== 'auth') {
-        dispatch(setCurrentView('landing'));
+      if (isAuthenticated && currentView === "landing") {
+        dispatch(setCurrentView("dashboard"));
+      } else if (!isAuthenticated && currentView !== "auth") {
+        dispatch(setCurrentView("landing"));
       }
     }
   }, [loading, isAuthenticated, currentView, dispatch]);
+
+  // Effect to handle view changes
+  useEffect(() => {
+    handleViewChange();
+  }, [handleViewChange]);
 
   // Apply dark mode class to root element
   useEffect(() => {
@@ -47,65 +47,69 @@ function App() {
     }
   }, [theme]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Loading...</p>
+  const handleSignIn = useCallback(() => {
+    setInitialAuthMode("login");
+    dispatch(setCurrentView("auth"));
+  }, [dispatch]);
+
+  const handleSignUp = useCallback(() => {
+    setInitialAuthMode("signup");
+    dispatch(setCurrentView("auth"));
+  }, [dispatch]);
+
+  const handleDashboardClick = useCallback(() => {
+    dispatch(setCurrentView("dashboard"));
+  }, [dispatch]);
+
+  const handleLogoClick = useCallback(() => {
+    dispatch(setCurrentView("landing"));
+  }, [dispatch]);
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-300">Loading...</p>
+          </div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  let content;
-  switch (currentView) {
-    case "landing":
-      content = (
-        <LandingPage
-          isAuthenticated={isAuthenticated}
-          onSignInClick={() => {
-            setInitialAuthMode("login");
-            dispatch(setCurrentView("auth"));
-          }}
-          onSignUpClick={() => {
-            setInitialAuthMode("signup");
-            dispatch(setCurrentView("auth"));
-          }}
-          onDashboardClick={() => dispatch(setCurrentView("dashboard"))}
-        />
-      );
-      break;
-    case "auth":
-      content = (
-        <AuthContainer
-          onAuthSuccess={() => dispatch(setCurrentView("dashboard"))}
-          initialMode={initialAuthMode}
-          onLogoClick={() => dispatch(setCurrentView("landing"))}
-        />
-      );
-      break;
-    case "dashboard":
-      content = <AppContent onLogoClick={() => dispatch(setCurrentView("landing"))} />;
-      break;
-    default:
-      content = (
-        <LandingPage
-          isAuthenticated={isAuthenticated}
-          onSignInClick={() => {
-            setInitialAuthMode("login");
-            dispatch(setCurrentView("auth"));
-          }}
-          onSignUpClick={() => {
-            setInitialAuthMode("signup");
-            dispatch(setCurrentView("auth"));
-          }}
-          onDashboardClick={() => dispatch(setCurrentView("dashboard"))}
-        />
-      );
-  }
+    switch (currentView) {
+      case "landing":
+        return (
+          <LandingPage
+            isAuthenticated={isAuthenticated}
+            onSignInClick={handleSignIn}
+            onSignUpClick={handleSignUp}
+            onDashboardClick={handleDashboardClick}
+          />
+        );
+      case "auth":
+        return (
+          <AuthContainer
+            onAuthSuccess={handleDashboardClick}
+            initialMode={initialAuthMode}
+            onLogoClick={handleLogoClick}
+          />
+        );
+      case "dashboard":
+        return <AppContent onLogoClick={handleLogoClick} />;
+      default:
+        return (
+          <LandingPage
+            isAuthenticated={isAuthenticated}
+            onSignInClick={handleSignIn}
+            onSignUpClick={handleSignUp}
+            onDashboardClick={handleDashboardClick}
+          />
+        );
+    }
+  };
 
-  return <ErrorBoundary>{content}</ErrorBoundary>;
+  return <ErrorBoundary>{renderContent()}</ErrorBoundary>;
 }
 
 export default App;
