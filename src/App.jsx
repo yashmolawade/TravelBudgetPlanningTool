@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import AppContent from "./components/AppContent";
 import AuthContainer from "./components/auth/AuthContainer";
 import ErrorBoundary from "./components/common/ErrorBoundary";
@@ -9,44 +9,34 @@ import {
   selectIsAuthenticated,
   selectAuthLoading,
 } from "./store/slices/authSlice";
+import { selectCurrentView, setCurrentView, setActiveTab } from "./store/slices/uiSlice";
 
 function App() {
+  const dispatch = useDispatch();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const loading = useSelector(selectAuthLoading);
   const theme = useSelector((state) => state.ui.theme);
-  const [view, setViewInternal] = useState("landing"); // 'landing', 'auth', 'dashboard'
-  const [initialAuthMode, setInitialAuthMode] = useState("login");
-  const [initialViewDetermined, setInitialViewDetermined] = useState(false); // New state to track if initial view has been set
-
-  const setView = (newView, mode = "login") => {
-    setInitialAuthMode(mode);
-    setViewInternal(newView);
-  };
+  const currentView = useSelector(selectCurrentView);
+  const [initialAuthMode, setInitialAuthMode] = React.useState("login");
 
   // Initialize auth listener
   useAuth();
 
   // Determine initial view after loading
   useEffect(() => {
-    if (!loading && !initialViewDetermined) {
+    if (!loading) {
       if (isAuthenticated) {
-        setViewInternal("dashboard");
-      } else {
-        setViewInternal("landing");
+        // If authenticated, restore the last active tab if it exists
+        const savedTab = localStorage.getItem('activeTab');
+        if (savedTab) {
+          dispatch(setActiveTab(savedTab));
+        }
+        dispatch(setCurrentView('dashboard'));
+      } else if (currentView !== 'auth') {
+        dispatch(setCurrentView('landing'));
       }
-      setInitialViewDetermined(true); // Mark that initial view has been set
     }
-    // If not authenticated and currently in 'auth' view, do not redirect away from login/signup page.
-    // This handles failed login attempts without forcing a redirect to landing.
-    else if (
-      !loading &&
-      !isAuthenticated &&
-      view !== "auth" &&
-      initialViewDetermined
-    ) {
-      setViewInternal("landing");
-    }
-  }, [loading, isAuthenticated, view, initialViewDetermined]);
+  }, [loading, isAuthenticated, currentView, dispatch]);
 
   // Apply dark mode class to root element
   useEffect(() => {
@@ -69,36 +59,48 @@ function App() {
   }
 
   let content;
-  switch (view) {
+  switch (currentView) {
     case "landing":
       content = (
         <LandingPage
           isAuthenticated={isAuthenticated}
-          onSignInClick={() => setView("auth", "login")}
-          onSignUpClick={() => setView("auth", "signup")}
-          onDashboardClick={() => setView("dashboard")}
+          onSignInClick={() => {
+            setInitialAuthMode("login");
+            dispatch(setCurrentView("auth"));
+          }}
+          onSignUpClick={() => {
+            setInitialAuthMode("signup");
+            dispatch(setCurrentView("auth"));
+          }}
+          onDashboardClick={() => dispatch(setCurrentView("dashboard"))}
         />
       );
       break;
     case "auth":
       content = (
         <AuthContainer
-          onAuthSuccess={() => setView("dashboard")}
+          onAuthSuccess={() => dispatch(setCurrentView("dashboard"))}
           initialMode={initialAuthMode}
-          onLogoClick={() => setView("landing")}
+          onLogoClick={() => dispatch(setCurrentView("landing"))}
         />
       );
       break;
     case "dashboard":
-      content = <AppContent onLogoClick={() => setView("landing")} />;
+      content = <AppContent onLogoClick={() => dispatch(setCurrentView("landing"))} />;
       break;
     default:
       content = (
         <LandingPage
           isAuthenticated={isAuthenticated}
-          onSignInClick={() => setView("auth", "login")}
-          onSignUpClick={() => setView("auth", "signup")}
-          onDashboardClick={() => setView("dashboard")}
+          onSignInClick={() => {
+            setInitialAuthMode("login");
+            dispatch(setCurrentView("auth"));
+          }}
+          onSignUpClick={() => {
+            setInitialAuthMode("signup");
+            dispatch(setCurrentView("auth"));
+          }}
+          onDashboardClick={() => dispatch(setCurrentView("dashboard"))}
         />
       );
   }
